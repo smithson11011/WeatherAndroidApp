@@ -14,6 +14,9 @@ import ru.something.weatherandroidapp.activities.AppState
 import ru.something.weatherandroidapp.adapters.DetailsRecyclerView
 import ru.something.weatherandroidapp.databinding.NavigationFragmentBinding
 import ru.something.weatherandroidapp.model.Weather
+import ru.something.weatherandroidapp.model.WeatherDTO
+import ru.something.weatherandroidapp.utils.hide
+import ru.something.weatherandroidapp.utils.show
 import ru.something.weatherandroidapp.viewmodel.MainViewModel
 
 class NavigationFragment : Fragment() {
@@ -55,7 +58,7 @@ class NavigationFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.navigationRecyclerView.adapter = adapter
         binding.mainFragmentFAB.setOnClickListener { changeWeatherDataSet() }
-        viewModel.getLiveData().observe(viewLifecycleOwner, Observer { renderData(it) })
+        viewModel.getLiveData().observe(viewLifecycleOwner) { renderData(it) }
         viewModel.getWeatherFromLocalSourceRus()
     }
 
@@ -68,14 +71,14 @@ class NavigationFragment : Fragment() {
     private fun renderData(appState: AppState) {
         when (appState) {
             is AppState.Success -> {
-                binding.loadingLayout.visibility = View.GONE
+                binding.loadingLayout.hide()
                 adapter.setWeather(appState.weatherData)
             }
             is AppState.Loading -> {
-                binding.loadingLayout.visibility = View.VISIBLE
+                binding.loadingLayout.show()
             }
             is AppState.Error -> {
-                binding.loadingLayout.visibility = View.GONE
+                binding.loadingLayout.show()
                 Snackbar
                     .make(binding.navigationFragment, "Error", Snackbar.LENGTH_INDEFINITE)
                     .setAction(getString(R.string.reload)) {
@@ -101,6 +104,9 @@ class NavigationFragment : Fragment() {
     interface OnItemViewClickListener {
         fun onItemViewClick(weather: Weather)
     }
+
+
+
 
 
 }
