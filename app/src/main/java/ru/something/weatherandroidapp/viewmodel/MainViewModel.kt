@@ -1,6 +1,5 @@
 package ru.something.weatherandroidapp.viewmodel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ru.something.weatherandroidapp.activities.AppState

@@ -23,24 +23,25 @@ class NavigationFragment : Fragment() {
     private val binding get() = _binding!!
     private val adapter = DetailsRecyclerView(object : OnItemViewClickListener {
         override fun onItemViewClick(weather: Weather) {
-            val manager = activity?.supportFragmentManager
-            if (manager != null) {
-                val bundle = Bundle()
-                bundle.putParcelable(WeatherDetails.BUNDLE_EXTRA, weather)
-                manager.beginTransaction()
-                    .add(R.id.activity_main, WeatherDetails.newInstance(bundle))
+            activity?.supportFragmentManager?.apply {
+                beginTransaction()
+                    .add(R.id.activity_main, WeatherDetails.newInstance(Bundle().apply {
+                        putParcelable(WeatherDetails.BUNDLE_EXTRA, weather)
+                    }))
                     .addToBackStack("")
                     .commitAllowingStateLoss()
             }
         }
     })
     private var isDataSetRussian = true
+    private val viewModel: MainViewModel by lazy {
+        ViewModelProvider(this)[MainViewModel::class.java]
+    }
+
 
     companion object {
         fun newInstance() = NavigationFragment()
     }
-
-    private lateinit var viewModel: MainViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,7 +55,6 @@ class NavigationFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.navigationRecyclerView.adapter = adapter
         binding.mainFragmentFAB.setOnClickListener { changeWeatherDataSet() }
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.getLiveData().observe(viewLifecycleOwner, Observer { renderData(it) })
         viewModel.getWeatherFromLocalSourceRus()
     }
@@ -95,8 +95,7 @@ class NavigationFragment : Fragment() {
         } else {
             viewModel.getWeatherFromLocalSourceRus()
             binding.mainFragmentFAB.setImageResource(R.drawable.ic_russia)
-        }
-        isDataSetRussian = !isDataSetRussian
+        }.also { isDataSetRussian = !isDataSetRussian }
     }
 
     interface OnItemViewClickListener {
