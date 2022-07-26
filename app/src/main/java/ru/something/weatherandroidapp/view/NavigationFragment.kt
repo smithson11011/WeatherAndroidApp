@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import com.google.android.material.snackbar.Snackbar
 import ru.something.weatherandroidapp.R
 import ru.something.weatherandroidapp.activities.AppState
+import ru.something.weatherandroidapp.adapters.DetailsRecyclerView
 import ru.something.weatherandroidapp.databinding.NavigationFragmentBinding
 import ru.something.weatherandroidapp.model.Weather
 import ru.something.weatherandroidapp.viewmodel.MainViewModel
@@ -20,6 +21,20 @@ class NavigationFragment : Fragment() {
     // Создание Binding
     private var _binding: NavigationFragmentBinding? = null
     private val binding get() = _binding!!
+    private val adapter = DetailsRecyclerView(object : OnItemViewClickListener {
+        override fun onItemViewClick(weather: Weather) {
+            val manager = activity?.supportFragmentManager
+            if (manager != null) {
+                val bundle = Bundle()
+                bundle.putParcelable(WeatherDetails.BUNDLE_EXTRA, weather)
+                manager.beginTransaction()
+                    .add(R.id.activity_main, WeatherDetails.newInstance(bundle))
+                    .addToBackStack("")
+                    .commitAllowingStateLoss()
+            }
+        }
+    })
+    private var isDataSetRussian = true
 
     companion object {
         fun newInstance() = NavigationFragment()
@@ -32,26 +47,29 @@ class NavigationFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = NavigationFragmentBinding.inflate(layoutInflater)
-        val view = binding.root
-        return view
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.navigationRecyclerView.adapter = adapter
+        binding.mainFragmentFAB.setOnClickListener { changeWeatherDataSet() }
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
         viewModel.getLiveData().observe(viewLifecycleOwner, Observer { renderData(it) })
+        viewModel.getWeatherFromLocalSourceRus()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        adapter.removeListener()
         _binding = null
     }
 
     private fun renderData(appState: AppState) {
         when (appState) {
             is AppState.Success -> {
-                val weatherData = appState.weatherData
                 binding.loadingLayout.visibility = View.GONE
+                adapter.setWeather(appState.weatherData)
             }
             is AppState.Loading -> {
                 binding.loadingLayout.visibility = View.VISIBLE
@@ -60,14 +78,30 @@ class NavigationFragment : Fragment() {
                 binding.loadingLayout.visibility = View.GONE
                 Snackbar
                     .make(binding.navigationFragment, "Error", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("Reload") { viewModel.getWeatherFromLocalSourceRus() }
+                    .setAction(getString(R.string.reload)) {
+                        viewModel.getWeatherFromLocalSourceRus()
+                    }
+
                     .show()
 
             }
         }
-        Toast.makeText(context, "data", Toast.LENGTH_LONG).show()
     }
 
+    private fun changeWeatherDataSet() {
+        if (isDataSetRussian) {
+            viewModel.getWeatherFromLocalSourceWorld()
+            binding.mainFragmentFAB.setImageResource(R.drawable.ic_world)
+        } else {
+            viewModel.getWeatherFromLocalSourceRus()
+            binding.mainFragmentFAB.setImageResource(R.drawable.ic_russia)
+        }
+        isDataSetRussian = !isDataSetRussian
+    }
+
+    interface OnItemViewClickListener {
+        fun onItemViewClick(weather: Weather)
+    }
 
 
 }

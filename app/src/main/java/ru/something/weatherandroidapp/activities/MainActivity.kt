@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.activity_main, NavigationFragment.newInstance())
-                .commitNow()
+                .commit()
         }
     }
 }

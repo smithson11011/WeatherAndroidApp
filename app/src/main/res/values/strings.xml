@@ -3,5 +3,6 @@
     <string name="weather_app_header">Weather App</string>
     <string name="temperature_label">Temperature</string>
     <string name="feels_like_label">Feels like</string>
-    <string name="city_coordinates">lt/ln: %s, %s"</string>
+    <string name="city_coordinates">lt/ln:"</string>
+    <string name="reload">reload</string>
 </resources>
