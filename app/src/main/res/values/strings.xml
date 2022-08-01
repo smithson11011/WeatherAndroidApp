@@ -5,4 +5,6 @@
     <string name="feels_like_label">Feels like</string>
     <string name="city_coordinates">lt/ln: %s, %s"</string>
     <string name="reload">reload</string>
+    <string name="error">Appstate Error</string>
+    <string name="image_header_url">"https://freepngimg.com/thumb/city/36275-3-city-hd.png"</string>
 </resources>

@@ -1,4 +1,31 @@
-package ru.something.weatherandroidapp.viewmodel
+package ru.something.weatherandroidapp.utils
+
+import ru.something.weatherandroidapp.R
+import ru.something.weatherandroidapp.model.WeatherDTO
+import java.util.*
+
+/*private fun displayWeather(weatherDTO: WeatherDTO) {
+    with(binding) {
+        mainView.show()
+        loadingLayout.hide()
+        val city = weatherBundle.city
+        cityName.text = city.city
+        cityCoordinates.text = kotlin.String.format(
+            getString(ru.something.weatherandroidapp.R.string.city_coordinates),
+            city.lat.toString(),
+            city.lon.toString()
+        )
+        weatherCondition.text = weatherDTO.fact?.condition?.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(
+                java.util.Locale.ROOT
+            ) else it.toString()
+        }
+        temperatureValue.text = weatherDTO.fact?.temp.toString()
+        feelsLikeValue.text = weatherDTO.fact?.feels_like.toString()
+    }
+} */
+
+/*package ru.something.weatherandroidapp.viewmodel
 
 import android.os.Build
 import android.os.Handler
@@ -21,7 +48,7 @@ lat: Double, private val lon: Double) {
     fun loadWeather() {
         try {
             val uri =
-                URL("https://api.weather.yandex.ru/v2/informers?lat=${lat}&lon=${lon}")
+                URL("https://api.weather.yandex.ru/informers?lat=${lat}&lon=${lon}")
             val handler = Handler()
             Thread(Runnable {
                 lateinit var urlConnection: HttpsURLConnection
@@ -63,4 +90,4 @@ lat: Double, private val lon: Double) {
         fun onLoaded(weatherDTO: WeatherDTO)
         fun onFailed(throwable: Throwable)
     }
-}
+} */

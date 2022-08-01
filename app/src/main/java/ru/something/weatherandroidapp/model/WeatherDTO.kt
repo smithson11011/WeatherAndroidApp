@@ -1,7 +1,7 @@
 package ru.something.weatherandroidapp.model
 
 data class WeatherDTO(
-    val fact: Fact?,
+    val fact: FactDTO?,
     val forecast: Forecast,
     val info: Info,
     val now: Int,
@@ -14,7 +14,7 @@ data class Info(
     val url: String
 )
 
-data class Fact(
+data class FactDTO(
     val condition: String?,
     val daytime: String,
     val feels_like: Int?,

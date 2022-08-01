@@ -5,33 +5,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
 import ru.something.weatherandroidapp.R
+import ru.something.weatherandroidapp.activities.AppState
 import ru.something.weatherandroidapp.databinding.WeatherDetailsFragmentsBinding
 import ru.something.weatherandroidapp.model.Weather
 import ru.something.weatherandroidapp.model.WeatherDTO
-import ru.something.weatherandroidapp.utils.hide
-import ru.something.weatherandroidapp.utils.show
-import ru.something.weatherandroidapp.viewmodel.WeatherLoader
-import java.io.BufferedReader
-import java.util.*
-import java.util.stream.Collectors
+import ru.something.weatherandroidapp.utils.*
+import ru.something.weatherandroidapp.viewmodel.WeatherViewModel
+import java.io.IOException
 
 class WeatherDetails : Fragment() {
     // Создание Binding
     private var _binding: WeatherDetailsFragmentsBinding? = null
     private val binding get() = _binding!!
     private lateinit var weatherBundle: Weather
-    private val onLoadListener: WeatherLoader.WeatherLoaderListener =
-        object : WeatherLoader.WeatherLoaderListener {
-            override fun onLoaded(weatherDTO: WeatherDTO) {
-                displayWeather(weatherDTO)
-            }
-
-            override fun onFailed(throwable: Throwable) {
-            }
-        }
 
 
     companion object {
@@ -45,6 +38,11 @@ class WeatherDetails : Fragment() {
         }
     }
 
+    private val viewModel: WeatherViewModel by lazy {
+        ViewModelProvider(this)[WeatherViewModel::class.java]
+    }
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,13 +55,15 @@ class WeatherDetails : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         weatherBundle = arguments?.getParcelable(BUNDLE_EXTRA) ?: Weather()
-        binding.mainView.show()
-        binding.loadingLayout.hide()
-        val loader = WeatherLoader(
-            onLoadListener, weatherBundle.city.lat,
+        Glide.with(this)
+            .load(getString(R.string.image_header_url)).into(binding.headerImage)
+        viewModel.detailsLiveData.observe(viewLifecycleOwner, Observer {
+            renderData(it)
+        })
+        viewModel.getWeatherFromRemoteSource(
+            weatherBundle.city.lat,
             weatherBundle.city.lon
         )
-        loader.loadWeather()
     }
 
 
@@ -72,25 +72,47 @@ class WeatherDetails : Fragment() {
         _binding = null
     }
 
-    private fun displayWeather(weatherDTO: WeatherDTO) {
-        with(binding) {
-            mainView.show()
-            loadingLayout.hide()
-            val city = weatherBundle.city
-            cityName.text = city.city
-            cityCoordinates.text = String.format(
-                getString(R.string.city_coordinates),
-                city.lat.toString(),
-                city.lon.toString()
-            )
-            weatherCondition.text = weatherDTO.fact?.condition?.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(
-                    Locale.ROOT
-                ) else it.toString()
+
+    private fun renderData(appState: AppState) {
+        when (appState) {
+            is AppState.Success -> {
+                binding.mainView.show()
+                binding.loadingLayout.hide()
+                setWeather(appState.weatherData[0])
             }
-            temperatureValue.text = weatherDTO.fact?.temp.toString()
-            feelsLikeValue.text = weatherDTO.fact?.feels_like.toString()
+            is AppState.Loading -> {
+                binding.mainView.hide()
+                binding.loadingLayout.show()
+            }
+            is AppState.Error -> {
+                binding.mainView.show()
+                binding.loadingLayout.hide()
+                binding.mainView.showSnackBar(
+                    getString(R.string.error),
+                    getString(R.string.reload),
+                    {
+                        viewModel.getWeatherFromRemoteSource(
+                            weatherBundle.city.lat,
+                            weatherBundle.city.lon
+                        )
+                    })
+
+            }
         }
+    }
+
+    private fun setWeather(weather: Weather) {
+        val city = weatherBundle.city
+        binding.cityName.text = city.city
+        binding.cityCoordinates.text = String.format(
+            getString(R.string.city_coordinates),
+            city.lat.toString(),
+            city.lon.toString()
+        )
+        binding.temperatureValue.text = weather.temperature.toString()
+        binding.feelsLikeValue.text = weather.feelsLike.toString()
+        binding.weatherCondition.text = weather.condition
+
     }
 
 
